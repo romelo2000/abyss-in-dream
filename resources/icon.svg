@@ -1,0 +1,55 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#12132a"/>
+      <stop offset="100%" stop-color="#05060f"/>
+    </radialGradient>
+    <radialGradient id="abyssGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.9"/>
+      <stop offset="40%" stop-color="#c44d8b" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#05060f" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4d8bc4" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#8b5cf6" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#d4a843" stop-opacity="0.4"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="110" fill="url(#bgGrad)"/>
+
+  <!-- Outer glow -->
+  <circle cx="256" cy="256" r="200" fill="url(#abyssGrad)" opacity="0.5"/>
+
+  <!-- Ripple rings -->
+  <circle cx="256" cy="256" r="180" fill="none" stroke="url(#ringGrad)" stroke-width="1.5" opacity="0.3"/>
+  <circle cx="256" cy="256" r="140" fill="none" stroke="url(#ringGrad)" stroke-width="1.5" opacity="0.4"/>
+  <circle cx="256" cy="256" r="100" fill="none" stroke="url(#ringGrad)" stroke-width="1.5" opacity="0.5"/>
+  <circle cx="256" cy="256" r="60" fill="none" stroke="url(#ringGrad)" stroke-width="2" opacity="0.7"/>
+
+  <!-- Central abyss eye -->
+  <circle cx="256" cy="256" r="35" fill="#05060f" stroke="#8b5cf6" stroke-width="2" opacity="0.9"/>
+  <circle cx="256" cy="256" r="20" fill="#12132a" stroke="#c44d8b" stroke-width="1" opacity="0.8"/>
+  <circle cx="256" cy="256" r="8" fill="#8b5cf6" opacity="0.9"/>
+
+  <!-- Lotus petals around -->
+  <g opacity="0.3" transform="translate(256,256)">
+    <ellipse cx="0" cy="-160" rx="12" ry="40" fill="#c44d8b" transform="rotate(0)"/>
+    <ellipse cx="0" cy="-160" rx="12" ry="40" fill="#c44d8b" transform="rotate(45)"/>
+    <ellipse cx="0" cy="-160" rx="12" ry="40" fill="#c44d8b" transform="rotate(90)"/>
+    <ellipse cx="0" cy="-160" rx="12" ry="40" fill="#c44d8b" transform="rotate(135)"/>
+    <ellipse cx="0" cy="-160" rx="12" ry="40" fill="#c44d8b" transform="rotate(180)"/>
+    <ellipse cx="0" cy="-160" rx="12" ry="40" fill="#c44d8b" transform="rotate(225)"/>
+    <ellipse cx="0" cy="-160" rx="12" ry="40" fill="#c44d8b" transform="rotate(270)"/>
+    <ellipse cx="0" cy="-160" rx="12" ry="40" fill="#c44d8b" transform="rotate(315)"/>
+  </g>
+
+  <!-- Stars -->
+  <circle cx="80" cy="100" r="1.5" fill="#c4c5e8" opacity="0.6"/>
+  <circle cx="420" cy="80" r="1" fill="#c4c5e8" opacity="0.5"/>
+  <circle cx="440" cy="400" r="1.5" fill="#c4c5e8" opacity="0.4"/>
+  <circle cx="70" cy="420" r="1" fill="#c4c5e8" opacity="0.5"/>
+  <circle cx="150" cy="60" r="1" fill="#c4c5e8" opacity="0.3"/>
+  <circle cx="380" cy="450" r="1" fill="#c4c5e8" opacity="0.4"/>
+</svg>
