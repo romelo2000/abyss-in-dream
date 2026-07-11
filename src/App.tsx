@@ -59,8 +59,11 @@ export default function App() {
   const [showBreathing, setShowBreathing] = useState(false)
   const [microBreak, setMicroBreak] = useState(false)
   const [eyeState, setEyeState] = useState<EyeState>('sleeping')
+  const [echoKeywords, setEchoKeywords] = useState<string[]>([])
+  const [shadowText, setShadowText] = useState<string | null>(null)
   const prevPhaseRef = useRef<string | null>(null)
   const streamingSessionRef = useRef<number | null>(null)
+  const lastInputTimeRef = useRef<number | null>(null)
 
   const currentScene = DREAM_SCENES.find(s => s.id === (currentSession?.dream_scene || currentSceneId)) || DREAM_SCENES[0]
 
@@ -187,6 +190,7 @@ export default function App() {
   }
 
   const handleSend = async (message: string, forceMode?: AbyssMode) => {
+    const now = Date.now()
     if (!currentSession) {
       // Create session if none exists
       const session = await abyss.session.create(currentSceneId, currentModel)
@@ -196,9 +200,11 @@ export default function App() {
       setMetrics(null)
       // Now send
       await sendMessage(session.id, message, forceMode)
+      lastInputTimeRef.current = now
       return
     }
     await sendMessage(currentSession.id, message, forceMode)
+    lastInputTimeRef.current = now
   }
 
   const sendMessage = async (sessionId: number, message: string, forceMode?: AbyssMode) => {
@@ -229,11 +235,13 @@ export default function App() {
     setEyeState('thinking')
 
     try {
+      const responseTimeMs = lastInputTimeRef.current ? Date.now() - lastInputTimeRef.current : undefined
       const result = await abyss.chat.send({
         sessionId,
         message,
         model: currentModel,
         forceMode,
+        responseTimeMs,
       })
 
       // Add abyss message
@@ -247,6 +255,15 @@ export default function App() {
       }
       setMessages(prev => [...prev, abyssMsg])
       setStreamingText('')
+
+      // Shadow text
+      setShadowText(result.shadow || null)
+
+      // Fetch echo keywords for highlighting
+      try {
+        const keywords = await abyss.memory.echoKeywords(sessionId)
+        setEchoKeywords(keywords)
+      } catch { /* ignore */ }
 
       // Update metrics
       const m = await abyss.metrics.get(sessionId)
@@ -308,6 +325,7 @@ export default function App() {
       setStreamingText('')
       streamingSessionRef.current = null
       setEyeState(currentSession?.ended_at ? 'sleeping' : 'listening')
+      if (shadowText) setTimeout(() => setShadowText(null), 5000)
     }
   }
 
@@ -372,6 +390,15 @@ export default function App() {
       setToast(`Книга Бездны сохранена на рабочий стол: ${path}`)
     } else {
       setToast('Не удалось создать книгу. Бездна молчит.')
+    }
+  }
+
+  const handleExportMd = async () => {
+    if (!currentSession) return
+    const path = await abyss.session.exportMd(currentSession.id)
+    if (path) {
+      setToast(`Сессия экспортирована: ${path}`)
+      setTimeout(() => setToast(''), 4000)
     }
   }
 
@@ -507,6 +534,9 @@ export default function App() {
               isStreaming={isStreaming}
               onInsight={handleSaveInsight}
               onBreakMirror={handleBreakMirror}
+              echoKeywords={echoKeywords}
+              shadowText={shadowText}
+              onExportMd={handleExportMd}
             />
             <ChatInput
               onSend={handleSend}

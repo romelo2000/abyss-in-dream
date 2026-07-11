@@ -18,9 +18,10 @@ export interface AbyssApi {
     messages: (id: number) => Promise<any[]>
     delete: (id: number) => Promise<boolean>
     end: (id: number) => Promise<{ result: any; awakening: number }>
+    exportMd: (sessionId: number) => Promise<string | null>
   }
   chat: {
-    send: (data: { sessionId: number; message: string; model: string; forceMode?: string }) => Promise<{ message: any; mode: string }>
+    send: (data: { sessionId: number; message: string; model: string; forceMode?: string; responseTimeMs?: number }) => Promise<{ message: any; mode: string; shadow?: string | null }>
     onChunk: (callback: (data: { sessionId: number; chunk: string }) => void) => void
     onError: (callback: (data: { sessionId: number; error: string }) => void) => void
     onStatus: (callback: (data: { sessionId: number; status: string }) => void) => void
@@ -39,6 +40,7 @@ export interface AbyssApi {
     search: (query: string) => Promise<any[]>
     patterns: () => Promise<any[]>
     welcome: () => Promise<string>
+    echoKeywords: (sessionId: number) => Promise<string[]>
   }
   settings: {
     get: (key: string) => Promise<string | undefined>

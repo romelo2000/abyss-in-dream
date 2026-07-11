@@ -459,3 +459,33 @@ body {
 .animate-breathe {
   animation: abyss-breathe-medium 3s ease-in-out infinite;
 }
+
+/* Echo highlight */
+.echo-highlight {
+  color: #f0c060;
+  background: rgba(240, 192, 96, 0.08);
+  border-bottom: 1px dotted rgba(240, 192, 96, 0.4);
+  cursor: help;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* Shadow text */
+.shadow-text {
+  border-left: 2px solid rgba(139, 92, 246, 0.3);
+  padding-left: 12px;
+  margin-top: 8px;
+  font-style: italic;
+  color: #6b6c9a;
+  font-size: 0.85em;
+  opacity: 0.7;
+}
+
+.shadow-label {
+  font-size: 0.7em;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #5d5fa0;
+  margin-bottom: 4px;
+  display: block;
+}

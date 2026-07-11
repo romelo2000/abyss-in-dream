@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { ChatMessage, MODE_NAMES, MODE_COLORS } from '../lib/types'
+import { EchoText } from './EchoText'
 
 interface Props {
   messages: ChatMessage[]
@@ -7,9 +8,12 @@ interface Props {
   isStreaming: boolean
   onInsight: (messageId: number, content: string) => void
   onBreakMirror: (messageId: number, quote: string, mode: string) => void
+  echoKeywords?: string[]
+  shadowText?: string | null
+  onExportMd?: () => void
 }
 
-export function ChatView({ messages, streamingText, isStreaming, onInsight, onBreakMirror }: Props) {
+export function ChatView({ messages, streamingText, isStreaming, onInsight, onBreakMirror, echoKeywords = [], shadowText, onExportMd }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [hoveredMsg, setHoveredMsg] = useState<number | null>(null)
 
@@ -74,7 +78,11 @@ export function ChatView({ messages, streamingText, isStreaming, onInsight, onBr
                     : undefined,
               }}
             >
-              <p className="whitespace-pre-wrap">{msg.content}</p>
+              {msg.role === 'abyss' && echoKeywords.length > 0 ? (
+                <EchoText content={msg.content} echoKeywords={echoKeywords} />
+              ) : (
+                <p className="whitespace-pre-wrap">{msg.content}</p>
+              )}
             </div>
             {msg.role === 'abyss' && hoveredMsg === msg.id && msg.mode !== 'silence' && (
               <div className="flex items-center gap-3 mt-1 ml-2">
@@ -115,6 +123,29 @@ export function ChatView({ messages, streamingText, isStreaming, onInsight, onBr
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {shadowText && !isStreaming && (
+        <div className="flex justify-start animate-fade-in">
+          <div className="max-w-[75%] mr-12">
+            <div className="shadow-text">
+              <span className="shadow-label">Тень Бездны</span>
+              {shadowText}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {messages.length > 0 && !isStreaming && onExportMd && (
+        <div className="flex justify-center pt-2">
+          <button
+            onClick={onExportMd}
+            className="text-xs text-abyss-dim hover:text-abyss-mist transition-colors"
+            data-tooltip="Экспортировать сессию в Markdown"
+          >
+            ↧ Экспорт в .md
+          </button>
         </div>
       )}
     </div>

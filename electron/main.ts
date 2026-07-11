@@ -182,11 +182,12 @@ function setupIpcHandlers() {
   })
 
   // Chat
-  ipcMain.handle('chat:send', async (event, { sessionId, message, model, forceMode }: {
+  ipcMain.handle('chat:send', async (event, { sessionId, message, model, forceMode, responseTimeMs }: {
     sessionId: number
     message: string
     model: string
     forceMode?: string
+    responseTimeMs?: number
   }) => {
     const userMsg = db!.addMessage(sessionId, 'user', message, null)
     
@@ -195,8 +196,8 @@ function setupIpcHandlers() {
     const memoryContext = await memory!.getRelevantMemory(message, sessionId)
     const userPatterns = memory!.getUserPatterns()
     
-    // Select mode
-    const mode = (forceMode || abyss!.selectMode(message, history, userPatterns)) as AbyssMode
+    // Select mode (with temporal dynamics)
+    const mode = (forceMode || abyss!.selectMode(message, history, userPatterns, responseTimeMs)) as AbyssMode
 
     // Check if Ollama is available
     const ollamaStatus = await ollama!.checkStatus()
@@ -298,7 +299,13 @@ function setupIpcHandlers() {
       }
       
       const fullResponse = responseChunks.join('')
-      const abyssMsg = db!.addMessage(sessionId, 'abyss', fullResponse, mode)
+      
+      // Extract shadow text
+      const shadowMatch = fullResponse.match(/\[shadow\](.*?)\[\/shadow\]/is)
+      const shadowText = shadowMatch ? shadowMatch[1].trim() : null
+      const cleanResponse = fullResponse.replace(/\[shadow\].*?\[\/shadow\]/gis, '').trim()
+      
+      const abyssMsg = db!.addMessage(sessionId, 'abyss', cleanResponse, mode)
       
       // Update memory in background (non-blocking)
       memory!.processInteraction(message, fullResponse, sessionId, mode).catch((err) => {
@@ -308,7 +315,7 @@ function setupIpcHandlers() {
       // Update metrics
       abyss!.updateMetrics(sessionId, message, fullResponse, mode, userMsgCount)
       
-      return { message: abyssMsg, mode }
+      return { message: abyssMsg, mode, shadow: shadowText }
     } catch (err) {
       event.sender.send('chat:error', { sessionId, error: String(err) })
       throw err
@@ -348,6 +355,20 @@ function setupIpcHandlers() {
 
   ipcMain.handle('memory:welcome', async () => {
     return memory!.getWelcomeMessage()
+  })
+
+  ipcMain.handle('memory:echo-keywords', async (_e, sessionId: number) => {
+    const candidates = db!.getEchoCandidates(sessionId, 5)
+    const keywords = new Set<string>()
+    for (const msg of candidates) {
+      const words = msg.content
+        .toLowerCase()
+        .replace(/[^\p{L}\s]/gu, ' ')
+        .split(/\s+/)
+        .filter(w => w.length >= 4 && w.length <= 20)
+      for (const w of words) keywords.add(w)
+    }
+    return Array.from(keywords).slice(0, 15)
   })
 
   // Settings
@@ -443,5 +464,54 @@ function setupIpcHandlers() {
 
     const { exportBook } = require('./exportBook')
     return exportBook(sessions, mirrors, awakening, egoDeaths, paradoxScore, karma)
+  })
+
+  // Export session as Markdown
+  ipcMain.handle('session:export-md', async (_e, sessionId: number) => {
+    const session = db!.getSession(sessionId)
+    if (!session) return null
+    const messages = db!.getSessionMessages(sessionId)
+    const metrics = db!.getMetrics(sessionId)
+
+    let md = `# Бездна в Сне — Сессия #${session.id}\n\n`
+    md += `**Дата:** ${new Date(session.created_at).toLocaleString('ru-RU')}\n`
+    if (session.ended_at) md += `**Завершена:** ${new Date(session.ended_at).toLocaleString('ru-RU')}\n`
+    if (session.phase) md += `**Фаза:** ${session.phase}\n`
+    if (session.dream_scene) md += `**Сцена:** ${session.dream_scene}\n`
+    if (session.ego_deaths) md += `**Ego Deaths:** ${session.ego_deaths}\n`
+    md += `\n---\n\n`
+
+    for (const msg of messages) {
+      const time = new Date(msg.timestamp).toLocaleTimeString('ru-RU')
+      if (msg.role === 'user') {
+        md += `### 👤 Ты — ${time}\n\n${msg.content}\n\n`
+      } else {
+        const modeLabel = msg.mode ? ` *(${msg.mode})*` : ''
+        md += `### ◉ Бездна — ${time}${modeLabel}\n\n${msg.content}\n\n`
+      }
+    }
+
+    if (metrics) {
+      md += `---\n\n## Метрики\n\n`
+      md += `- Глубина: ${metrics.depth ?? 0}/100\n`
+      md += `- Честность: ${metrics.honesty ?? 0}/100\n`
+      md += `- Гибкость: ${metrics.flexibility ?? 0}/100\n`
+      md += `- Осознанность: ${metrics.mindfulness ?? 0}/100\n`
+      md += `- Пробуждение: ${metrics.awakening_level ?? 0}/100\n`
+    }
+
+    const { dialog } = require('electron')
+    const result = await dialog.showSaveDialog(mainWindow!, {
+      title: 'Экспорт сессии в Markdown',
+      defaultPath: `Бездна-сессия-${session.id}.md`,
+      filters: [{ name: 'Markdown', extensions: ['md'] }],
+    })
+
+    if (!result.canceled && result.filePath) {
+      const fs = require('fs')
+      fs.writeFileSync(result.filePath, md, 'utf-8')
+      return result.filePath
+    }
+    return null
   })
 }

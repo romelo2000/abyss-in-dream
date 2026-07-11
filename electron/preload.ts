@@ -22,9 +22,10 @@ const api: AbyssApi = {
     messages: (id: number) => ipcRenderer.invoke('session:messages', id),
     delete: (id: number) => ipcRenderer.invoke('session:delete', id),
     end: (id: number) => ipcRenderer.invoke('session:end', id),
+    exportMd: (sessionId: number) => ipcRenderer.invoke('session:export-md', sessionId),
   },
   chat: {
-    send: (data: { sessionId: number; message: string; model: string; forceMode?: string }) =>
+    send: (data: { sessionId: number; message: string; model: string; forceMode?: string; responseTimeMs?: number }) =>
       ipcRenderer.invoke('chat:send', data),
     onChunk: (callback: (data: { sessionId: number; chunk: string }) => void) =>
       ipcRenderer.on('chat:chunk', (_e, data) => callback(data)),
@@ -51,6 +52,7 @@ const api: AbyssApi = {
     search: (query: string) => ipcRenderer.invoke('memory:search', query),
     patterns: () => ipcRenderer.invoke('memory:patterns'),
     welcome: () => ipcRenderer.invoke('memory:welcome'),
+    echoKeywords: (sessionId: number) => ipcRenderer.invoke('memory:echo-keywords', sessionId),
   },
   settings: {
     get: (key: string) => ipcRenderer.invoke('settings:get', key),
