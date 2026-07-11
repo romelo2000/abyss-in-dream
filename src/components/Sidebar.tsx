@@ -73,20 +73,20 @@ export function Sidebar({
           />
         </div>
         {egoDeaths > 0 && (
-          <div className="flex items-center gap-1 mt-2">
+          <div className="flex items-center gap-1 mt-2" data-tooltip="Сколько раз Бездна «убила» твоё эго" data-tooltip-bottom>
             <span className="text-xs text-abyss-dim">☠ Ego Death Counter:</span>
             <span className="text-xs text-abyss-glow font-mono">{egoDeaths}</span>
           </div>
         )}
         <div className="flex items-center gap-3 mt-1.5">
           {paradoxScore > 0 && (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1" data-tooltip="Сколько парадоксов ты удержал в диалоге" data-tooltip-bottom>
               <span className="text-xs text-abyss-dim">◈ Парадоксы:</span>
               <span className="text-xs text-abyss-glow font-mono">{paradoxScore}</span>
             </div>
           )}
           {karma !== 0 && (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1" data-tooltip="Карма: честность повышает, самообман понижает" data-tooltip-bottom>
               <span className="text-xs text-abyss-dim">☯ Карма:</span>
               <span className="text-xs font-mono" style={{ color: karma > 0 ? '#d4a843' : '#c44d8b' }}>
                 {karma > 0 ? '+' : ''}{karma}
@@ -98,7 +98,7 @@ export function Sidebar({
 
       {/* New session */}
       <div className="p-4">
-        <button onClick={onNewSession} className="btn-abyss w-full">
+        <button onClick={onNewSession} className="btn-abyss w-full" data-tooltip="Начать новую сессию с Бездной" data-tooltip-bottom>
           ✦ Новый сон
         </button>
       </div>
@@ -191,22 +191,22 @@ export function Sidebar({
 
       {/* Footer */}
       <div className="p-4 border-t border-abyss-edge/20 space-y-2">
-        <button onClick={onShowInsights} className="btn-ghost w-full text-sm">
+        <button onClick={onShowInsights} className="btn-ghost w-full text-sm" data-tooltip="Твои озарения из всех сессий" data-tooltip-bottom>
           ✦ Инсайты
         </button>
-        <button onClick={onShowBrokenMirrors} className="btn-ghost w-full text-sm">
+        <button onClick={onShowBrokenMirrors} className="btn-ghost w-full text-sm" data-tooltip="Цитаты Бездны с твоими комментариями" data-tooltip-bottom>
           ◈ Разбитые Зеркала
         </button>
-        <button onClick={onShowAchievements} className="btn-ghost w-full text-sm">
+        <button onClick={onShowAchievements} className="btn-ghost w-full text-sm" data-tooltip="Разблокированные достижения игры" data-tooltip-bottom>
           ♛ Достижения
         </button>
-        <button onClick={onShowDreamLetter} className="btn-ghost w-full text-sm">
+        <button onClick={onShowDreamLetter} className="btn-ghost w-full text-sm" data-tooltip="Статистика за неделю: метрики, эго-смерти, инсайты" data-tooltip-bottom>
           ☽ Письмо из сна
         </button>
-        <button onClick={onShowBook} className="btn-ghost w-full text-sm">
+        <button onClick={onShowBook} className="btn-ghost w-full text-sm" data-tooltip="Экспорт всей истории в книгу на рабочий стол" data-tooltip-bottom>
           📖 Книга Бездны
         </button>
-        <button onClick={onShowSettings} className="btn-ghost w-full text-sm">
+        <button onClick={onShowSettings} className="btn-ghost w-full text-sm" data-tooltip="Модель ИИ, декорация сна, статус Ollama" data-tooltip-bottom>
           ⚙ Настройки
         </button>
       </div>

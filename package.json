@@ -15,7 +15,8 @@
     "dist:win": "npm run build && electron-builder --win",
     "dist:all": "npm run build && electron-builder --mac --win",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "icon:gen": "bash scripts/gen-icon.sh"
   },
   "dependencies": {
     "better-sqlite3": "^11.10.0",

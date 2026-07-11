@@ -13,6 +13,9 @@ import { BrokenMirrorsPanel } from './components/BrokenMirrorsPanel'
 import { DreamInvasion } from './components/DreamInvasion'
 import { DailyChallengeBanner } from './components/DailyChallengeBanner'
 import { SetupWizard } from './components/SetupWizard'
+import { AbyssEye, EyeState } from './components/AbyssEye'
+import { BreathingGuide } from './components/BreathingGuide'
+import { soundEngine, SoundPhase } from './lib/soundEngine'
 import {
   Session,
   ChatMessage,
@@ -22,6 +25,7 @@ import {
   AbyssMode,
   PHASE_NAMES,
   PHASE_COLORS,
+  MODES,
 } from './lib/types'
 
 const abyss = window.abyss
@@ -48,6 +52,14 @@ export default function App() {
   const [karma, setKarma] = useState(0)
   const [sessionResult, setSessionResult] = useState<string | null>(null)
   const [showSetup, setShowSetup] = useState(false)
+  const [phaseToast, setPhaseToast] = useState<string | null>(null)
+  const [errorToast, setErrorToast] = useState<string | null>(null)
+  const [modeToast, setModeToast] = useState<string | null>(null)
+  const [soundOn, setSoundOn] = useState(false)
+  const [showBreathing, setShowBreathing] = useState(false)
+  const [microBreak, setMicroBreak] = useState(false)
+  const [eyeState, setEyeState] = useState<EyeState>('sleeping')
+  const prevPhaseRef = useRef<string | null>(null)
   const streamingSessionRef = useRef<number | null>(null)
 
   const currentScene = DREAM_SCENES.find(s => s.id === (currentSession?.dream_scene || currentSceneId)) || DREAM_SCENES[0]
@@ -88,6 +100,8 @@ export default function App() {
         console.error('Chat error:', data.error)
         setIsStreaming(false)
         setStreamingText('')
+        setErrorToast(`Бездна прервалась: ${data.error}`)
+        setTimeout(() => setErrorToast(null), 6000)
       })
     }
 
@@ -95,6 +109,15 @@ export default function App() {
       abyss.chat?.removeAllListeners?.()
     }
   }, [])
+
+  // Sync eye state with ollama status
+  useEffect(() => {
+    if (!ollamaRunning) {
+      setEyeState('sleeping')
+    } else if (!isStreaming) {
+      setEyeState(prev => prev === 'crisis' || prev === 'silence' || prev === 'egoDeath' || prev === 'insight' ? prev : 'listening')
+    }
+  }, [ollamaRunning, isStreaming])
 
   const loadSessions = async () => {
     const list = await abyss.session.list()
@@ -194,6 +217,17 @@ export default function App() {
     setStreamingText('')
     streamingSessionRef.current = sessionId
 
+    // Micro-break: Бездна всматривается
+    const msgCount = messages.filter(m => m.role === 'user').length
+    if (msgCount >= 4) {
+      setMicroBreak(true)
+      setEyeState('listening')
+      await new Promise(r => setTimeout(r, 2500))
+      setMicroBreak(false)
+    }
+
+    setEyeState('thinking')
+
     try {
       const result = await abyss.chat.send({
         sessionId,
@@ -227,12 +261,53 @@ export default function App() {
       // Reload session to get updated phase
       const updatedSession = await abyss.session.get(sessionId)
       setCurrentSession(updatedSession)
+
+      // Phase change notification
+      if (updatedSession?.phase && prevPhaseRef.current !== updatedSession.phase) {
+        if (prevPhaseRef.current !== null) {
+          setPhaseToast(`Сессия перешла в фазу: ${PHASE_NAMES[updatedSession.phase]}`)
+          setTimeout(() => setPhaseToast(null), 4000)
+          soundEngine.playEvent('phaseShift')
+          if (updatedSession.phase === 'crisis') setEyeState('crisis')
+        }
+        prevPhaseRef.current = updatedSession.phase
+        soundEngine.setPhase(updatedSession.phase as SoundPhase)
+      }
+
+      // Mode description toast (only for auto-selected modes, not forced)
+      if (!forceMode && result.mode && result.mode !== 'silence' && result.mode !== 'demo' && result.mode !== 'error') {
+        const modeInfo = MODES.find(m => m.id === result.mode)
+        if (modeInfo) {
+          setModeToast(`${modeInfo.name}: ${modeInfo.description}`)
+          setTimeout(() => setModeToast(null), 5000)
+          soundEngine.playEvent('modeShift')
+        }
+      }
+
+      // Silence mode
+      if (result.mode === 'silence') {
+        setEyeState('silence')
+        soundEngine.playEvent('silence')
+      } else if (result.mode !== 'error' && result.mode !== 'demo') {
+        setEyeState(updatedSession?.phase === 'crisis' ? 'crisis' : 'thinking')
+      }
+
+      // Ego death sound
+      await loadEgoDeaths()
+      const newEgoDeaths = await abyss.game.egoDeaths()
+      if (newEgoDeaths > egoDeaths) {
+        soundEngine.playEvent('egoDeath')
+        setEyeState('egoDeath')
+        setTimeout(() => setEyeState(updatedSession?.phase === 'crisis' ? 'crisis' : 'listening'), 2000)
+      }
+
     } catch (err) {
       console.error('Send error:', err)
     } finally {
       setIsStreaming(false)
       setStreamingText('')
       streamingSessionRef.current = null
+      setEyeState(currentSession?.ended_at ? 'sleeping' : 'listening')
     }
   }
 
@@ -268,6 +343,9 @@ export default function App() {
     if (!currentSession) return
     await abyss.insight.save(currentSession.id, content)
     await loadInsights()
+    soundEngine.playEvent('insight')
+    setEyeState('insight')
+    setTimeout(() => setEyeState(currentSession?.ended_at ? 'sleeping' : 'listening'), 1500)
   }
 
   const handleDeleteInsight = async (id: number) => {
@@ -355,19 +433,21 @@ export default function App() {
       {/* Main chat area */}
       <div className="flex-1 flex flex-col relative z-10">
         {/* Top bar */}
-        <div className="flex items-center justify-between px-6 py-3 border-b border-abyss-edge/20 glass">
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-abyss-mist">
+        <div className="flex items-center justify-between px-6 py-3 border-b border-abyss-edge/20 glass window-drag">
+          <div className="flex items-center gap-3 window-no-drag">
+            <AbyssEye state={eyeState} size={40} />
+            <span className="text-sm text-abyss-mist" data-tooltip="Текущая декорация сна">
               {currentScene.name}
             </span>
             {currentSession && (
-              <span className="text-xs text-abyss-dim">
+              <span className="text-xs text-abyss-dim" data-tooltip="Активная модель ИИ">
                 · {currentModel.split(':')[0]}
               </span>
             )}
             {currentSession && !currentSession.ended_at && currentSession.phase && (
               <span
                 className="text-xs px-2 py-0.5 rounded"
+                data-tooltip={`Фаза сессии: ${PHASE_NAMES[currentSession.phase]}`}
                 style={{
                   color: PHASE_COLORS[currentSession.phase],
                   background: `${PHASE_COLORS[currentSession.phase]}15`,
@@ -377,11 +457,38 @@ export default function App() {
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${ollamaRunning ? 'bg-green-400' : 'bg-red-400'} animate-pulse`} />
-            <span className="text-xs text-abyss-dim">
-              {ollamaRunning ? 'Бездна пробудилась' : 'Бездна спит...'}
-            </span>
+          <div className="flex items-center gap-3 window-no-drag">
+            <button
+              onClick={() => {
+                if (soundOn) {
+                  soundEngine.stop()
+                  setSoundOn(false)
+                } else {
+                  soundEngine.start()
+                  setSoundOn(true)
+                  if (currentSession?.phase) {
+                    soundEngine.setPhase(currentSession.phase as SoundPhase)
+                  }
+                }
+              }}
+              className="text-abyss-dim hover:text-abyss-text transition-colors"
+              data-tooltip={soundOn ? 'Выключить звук Бездны' : 'Включить звук Бездны'}
+            >
+              {soundOn ? '🔊' : '🔇'}
+            </button>
+            <button
+              onClick={() => setShowBreathing(!showBreathing)}
+              className="text-abyss-dim hover:text-abyss-text transition-colors"
+              data-tooltip={showBreathing ? 'Скрыть дыхательный гид' : 'Показать дыхательный гид'}
+            >
+              {showBreathing ? '◯' : '◐'}
+            </button>
+            <div className="flex items-center gap-2" data-tooltip={ollamaRunning ? 'Ollama работает — Бездна активна' : 'Ollama не запущена — Бездна спит'}>
+              <div className={`w-2 h-2 rounded-full ${ollamaRunning ? 'bg-green-400' : 'bg-red-400'} animate-pulse`} />
+              <span className="text-xs text-abyss-dim">
+                {ollamaRunning ? 'Бездна пробудилась' : 'Бездна спит...'}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -417,6 +524,19 @@ export default function App() {
           )}
         </div>
       </div>
+
+      {/* Breathing Guide */}
+      {showBreathing && <BreathingGuide onClose={() => setShowBreathing(false)} />}
+
+      {/* Micro-break overlay */}
+      {microBreak && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none">
+          <div className="text-center animate-fade-in">
+            <div className="text-2xl text-abyss-mist mb-2 animate-breathe">◉</div>
+            <p className="text-sm text-abyss-dim italic">Бездна всматривается в тебя...</p>
+          </div>
+        </div>
+      )}
 
       {/* Modals */}
       {showInsights && (
@@ -516,6 +636,36 @@ export default function App() {
               {sessionResult === 'lose' && '⚑ Сессия проиграна. Но Бездна не обиделась.'}
               {sessionResult === 'draw' && '○ Ничья. Сон продолжается.'}
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Phase change toast */}
+      {phaseToast && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 animate-scale-in">
+          <div className="glass rounded-xl px-6 py-3 border border-abyss-glow/30">
+            <p className="text-sm text-abyss-glow text-center">☉ {phaseToast}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Mode description toast */}
+      {modeToast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40 animate-fade-in">
+          <div className="glass rounded-xl px-5 py-2 border border-abyss-edge/30">
+            <p className="text-xs text-abyss-mist text-center italic">{modeToast}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Error toast */}
+      {errorToast && (
+        <div
+          className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-scale-in cursor-pointer"
+          onClick={() => setErrorToast(null)}
+        >
+          <div className="glass rounded-xl px-6 py-3 border border-red-400/30">
+            <p className="text-sm text-red-300 text-center">⚠ {errorToast}</p>
           </div>
         </div>
       )}

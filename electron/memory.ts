@@ -76,7 +76,7 @@ export class MemorySystem {
       // Calculate similarities
       const scored = pastMemories.map(m => {
         const storedEmbedding = JSON.parse(m.embedding) as number[]
-        const similarity = this.cosineSimilarity(embedding, storedEmbedding)
+        const similarity = this.cosineSimilarity(embedding, storedEmbedding, undefined, m.id)
         return { ...m, similarity }
       })
 
@@ -104,7 +104,7 @@ export class MemorySystem {
       const allMemories = this.db.getMemoryEmbeddings(200)
       const scored = allMemories.map(m => {
         const storedEmbedding = JSON.parse(m.embedding) as number[]
-        const similarity = this.cosineSimilarity(embedding, storedEmbedding)
+        const similarity = this.cosineSimilarity(embedding, storedEmbedding, undefined, m.id)
         return {
           content: m.content,
           topic: m.topic,

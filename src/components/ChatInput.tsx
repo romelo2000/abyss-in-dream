@@ -12,6 +12,7 @@ export function ChatInput({ onSend, disabled, onEndSession, isStreaming }: Props
   const [text, setText] = useState('')
   const [showModes, setShowModes] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const modePanelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -19,6 +20,24 @@ export function ChatInput({ onSend, disabled, onEndSession, isStreaming }: Props
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 150)}px`
     }
   }, [text])
+
+  useEffect(() => {
+    if (!showModes) return
+    const handleClickOutside = (e: MouseEvent) => {
+      if (modePanelRef.current && !modePanelRef.current.contains(e.target as Node)) {
+        setShowModes(false)
+      }
+    }
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowModes(false)
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleEscape)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [showModes])
 
   const handleSend = () => {
     if (!text.trim() || disabled) return
@@ -33,23 +52,36 @@ export function ChatInput({ onSend, disabled, onEndSession, isStreaming }: Props
     }
   }
 
+  const handleModeSelect = (mode: AbyssMode) => {
+    const msg = text.trim() || '...'
+    onSend(msg, mode)
+    setText('')
+    setShowModes(false)
+  }
+
   return (
     <div className="px-6 pb-6 pt-2">
       <div className="relative">
         {showModes && (
-          <div className="absolute bottom-full left-0 right-0 mb-2 glass rounded-xl p-3 animate-scale-in">
-            <p className="text-xs text-abyss-dim mb-2 px-1">Принудительный режим Бездны:</p>
+          <div ref={modePanelRef} className="absolute bottom-full left-0 right-0 mb-2 glass rounded-xl p-3 animate-scale-in">
+            <div className="flex items-center justify-between mb-2 px-1">
+              <p className="text-xs text-abyss-dim">Принудительный режим Бездны:</p>
+              <button
+                onClick={() => setShowModes(false)}
+                className="text-abyss-dim hover:text-abyss-text transition-colors text-sm"
+                data-tooltip="Закрыть панель режимов"
+              >
+                ✕
+              </button>
+            </div>
             <div className="grid grid-cols-2 gap-2">
               {MODES.map((mode) => (
                 <button
                   key={mode.id}
-                  onClick={() => {
-                    onSend(text.trim(), mode.id)
-                    setText('')
-                    setShowModes(false)
-                  }}
-                  disabled={!text.trim() || disabled}
+                  onClick={() => handleModeSelect(mode.id)}
+                  disabled={disabled}
                   className="text-left p-2 rounded-lg hover:bg-abyss-mid/50 transition-colors disabled:opacity-30"
+                  data-tooltip={mode.description}
                 >
                   <div className="text-sm text-abyss-text">{mode.name}</div>
                   <div className="text-xs text-abyss-dim">{mode.description}</div>
@@ -75,9 +107,9 @@ export function ChatInput({ onSend, disabled, onEndSession, isStreaming }: Props
 
           <button
             onClick={() => setShowModes(!showModes)}
-            disabled={disabled}
-            className="btn-ghost h-[50px] px-3 disabled:opacity-30"
-            title="Выбрать режим"
+            className="btn-ghost h-[50px] px-3"
+            data-tooltip="Выбрать режим Бездны принудительно"
+            data-tooltip-bottom
           >
             ◈
           </button>
@@ -86,6 +118,8 @@ export function ChatInput({ onSend, disabled, onEndSession, isStreaming }: Props
             onClick={handleSend}
             disabled={!text.trim() || disabled}
             className="btn-abyss h-[50px] px-5 disabled:opacity-30"
+            data-tooltip="Отправить сообщение Бездне"
+            data-tooltip-bottom
           >
             {isStreaming ? '...' : '→'}
           </button>
@@ -94,7 +128,8 @@ export function ChatInput({ onSend, disabled, onEndSession, isStreaming }: Props
             onClick={onEndSession}
             disabled={isStreaming}
             className="btn-ghost h-[50px] px-3 disabled:opacity-30"
-            title="Закончить сессию"
+            data-tooltip="Закончить сессию и подвести итог"
+            data-tooltip-bottom
           >
             ✕
           </button>

@@ -49,7 +49,8 @@ export function ChatView({ messages, streamingText, isStreaming, onInsight, onBr
             {msg.role === 'abyss' && msg.mode && (
               <div className="flex items-center gap-2 mb-1.5">
                 <span
-                  className="mode-badge"
+                  className="mode-badge window-no-drag"
+                  data-tooltip={msg.mode === 'silence' ? 'Бездна выбрала молчание' : (MODE_NAMES[msg.mode] || msg.mode)}
                   style={{
                     color: msg.mode === 'silence' ? '#6b6c9a' : MODE_COLORS[msg.mode] || '#8b8cc4',
                     background: msg.mode === 'silence' ? '#6b6c9a15' : `${MODE_COLORS[msg.mode] || '#8b8cc4'}15`,
@@ -80,12 +81,16 @@ export function ChatView({ messages, streamingText, isStreaming, onInsight, onBr
                 <button
                   onClick={() => onInsight(msg.id, msg.content)}
                   className="text-xs text-abyss-dim hover:text-abyss-gold transition-colors"
+                  data-tooltip="Сохранить этот ответ как инсайт"
+                  data-tooltip-bottom
                 >
                   ✦ Инсайт
                 </button>
                 <button
                   onClick={() => onBreakMirror(msg.id, msg.content, msg.mode || '')}
                   className="text-xs text-abyss-dim hover:text-abyss-glow transition-colors"
+                  data-tooltip="Забрать цитату и добавить свой комментарий"
+                  data-tooltip-bottom
                 >
                   ◈ Разбить зеркало
                 </button>

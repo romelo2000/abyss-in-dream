@@ -26,6 +26,7 @@ export function DreamInvasion() {
           <button
             onClick={() => setDismissed(true)}
             className="text-abyss-dim hover:text-abyss-text transition-colors text-sm"
+            data-tooltip="Закрыть вторжение из сна"
           >
             ✕
           </button>

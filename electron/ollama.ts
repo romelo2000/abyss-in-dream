@@ -179,8 +179,10 @@ export class OllamaClient {
         temperature: 0.9,
         top_p: 0.92,
         top_k: 40,
-        num_ctx: 8192,
-        num_predict: 2048,
+        num_ctx: 16384,
+        num_predict: 4096,
+        repeat_penalty: 1.15,
+        repeat_last_n: 512,
       },
     })
 
@@ -189,7 +191,7 @@ export class OllamaClient {
     let buffer = ''
     let totalChunks = 0
     const MAX_CHUNKS = 5000
-    const INACTIVITY_TIMEOUT = 30000
+    const INACTIVITY_TIMEOUT = 60000
     let inactivityTimer: ReturnType<typeof setTimeout> | null = null
 
     const resetInactivityTimer = () => {

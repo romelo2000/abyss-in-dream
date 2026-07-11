@@ -7,10 +7,10 @@ interface Props {
 
 export function MetricsPanel({ metrics, overallAwakening }: Props) {
   const bars = [
-    { label: 'Глубина', value: metrics?.depth ?? 0, color: '#4d8bc4' },
-    { label: 'Честность', value: metrics?.honesty ?? 0, color: '#c44d8b' },
-    { label: 'Гибкость ума', value: metrics?.flexibility ?? 0, color: '#8b5cf6' },
-    { label: 'Осознанность', value: metrics?.mindfulness ?? 0, color: '#d4a843' },
+    { label: 'Глубина', value: metrics?.depth ?? 0, color: '#4d8bc4', tooltip: 'Насколько глубоко ты погружаешься в диалог' },
+    { label: 'Честность', value: metrics?.honesty ?? 0, color: '#c44d8b', tooltip: 'Насколько ты искренен с собой и Бездной' },
+    { label: 'Гибкость ума', value: metrics?.flexibility ?? 0, color: '#8b5cf6', tooltip: 'Способность менять точку зрения' },
+    { label: 'Осознанность', value: metrics?.mindfulness ?? 0, color: '#d4a843', tooltip: 'Внимание к настоящему моменту' },
   ]
 
   const currentLevel = AWAKENING_LEVELS.find(
@@ -23,7 +23,7 @@ export function MetricsPanel({ metrics, overallAwakening }: Props) {
 
       <div className="space-y-3">
         {bars.map((bar) => (
-          <div key={bar.label}>
+          <div key={bar.label} data-tooltip={bar.tooltip} data-tooltip-bottom>
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-abyss-dim">{bar.label}</span>
               <span className="text-xs font-mono text-abyss-text">{Math.round(bar.value)}</span>

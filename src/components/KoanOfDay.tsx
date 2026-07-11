@@ -25,6 +25,7 @@ export function KoanOfDay() {
         <button
           onClick={() => setDismissed(true)}
           className="text-abyss-dim hover:text-abyss-text transition-colors text-sm"
+          data-tooltip="Закрыть коан дня"
         >
           ✕
         </button>

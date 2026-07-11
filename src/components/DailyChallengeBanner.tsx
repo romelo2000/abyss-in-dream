@@ -49,12 +49,14 @@ export function DailyChallengeBanner({ sessionId, onAccept }: Props) {
               onClick={handleAccept}
               disabled={!sessionId}
               className="text-xs px-3 py-1.5 rounded-lg bg-abyss-glow/20 text-abyss-glow hover:bg-abyss-glow/30 transition-all disabled:opacity-30"
+              data-tooltip="Принять вызов и попробовать выполнить его в этой сессии"
             >
               Принять
             </button>
             <button
               onClick={() => setDismissed(true)}
               className="text-abyss-dim hover:text-abyss-text transition-colors text-sm"
+              data-tooltip="Отклонить вызов"
             >
               ✕
             </button>

@@ -26,7 +26,7 @@ export function DreamLetter({ onClose }: Props) {
       >
         <div className="flex items-center justify-between p-5 border-b border-abyss-edge/20">
           <h2 className="text-lg gradient-text">Письмо из сна</h2>
-          <button onClick={onClose} className="btn-ghost px-3">✕</button>
+          <button onClick={onClose} className="btn-ghost px-3" data-tooltip="Закрыть письмо">✕</button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">

@@ -30,7 +30,7 @@ export function SettingsPanel({
       >
         <div className="flex items-center justify-between p-5 border-b border-abyss-edge/20">
           <h2 className="text-lg gradient-text">Настройки сна</h2>
-          <button onClick={onClose} className="btn-ghost px-3">✕</button>
+          <button onClick={onClose} className="btn-ghost px-3" data-tooltip="Закрыть настройки">✕</button>
         </div>
 
         {/* Ollama status */}
@@ -43,7 +43,7 @@ export function SettingsPanel({
               </span>
             </div>
             {!ollamaRunning && (
-              <button onClick={onStartOllama} className="btn-abyss text-sm">
+              <button onClick={onStartOllama} className="btn-abyss text-sm" data-tooltip="Запустить локальный сервер Ollama">
                 Запустить
               </button>
             )}
@@ -57,6 +57,7 @@ export function SettingsPanel({
             className={`px-4 py-2 rounded-lg text-sm transition-all ${
               tab === 'model' ? 'glass-light text-abyss-text' : 'text-abyss-dim hover:text-abyss-text'
             }`}
+            data-tooltip="Выбор языковой модели для Бездны"
           >
             Модель ИИ
           </button>
@@ -65,6 +66,7 @@ export function SettingsPanel({
             className={`px-4 py-2 rounded-lg text-sm transition-all ${
               tab === 'scene' ? 'glass-light text-abyss-text' : 'text-abyss-dim hover:text-abyss-text'
             }`}
+            data-tooltip="Выбор визуальной атмосферы сна"
           >
             Декорация сна
           </button>

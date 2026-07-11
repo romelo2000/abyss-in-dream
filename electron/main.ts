@@ -226,7 +226,7 @@ function setupIpcHandlers() {
     const dreamVoice = abyss!.getDreamVoice()
     const karmaMsg = abyss!.getKarmaMessage(sessionId)
     const userMsgCount = history.filter(m => m.role === 'user').length
-    const shouldSilence = userMsgCount >= 3 && abyss!.shouldSilence()
+    const shouldSilence = userMsgCount >= 2 && abyss!.shouldSilence()
     
     // Shadow echo
     const shadowEcho = abyss!.getShadowEcho(sessionId)
