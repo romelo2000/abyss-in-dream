@@ -9,7 +9,7 @@ const EMBEDDED_KEY = _k.join('')
 
 export class BrowserGemini {
   private apiKey: string = ''
-  private defaultModel = 'gemini-3.5-flash'
+  private defaultModel = 'gemini-2.0-flash'
   private usingEmbedded: boolean = false
 
   constructor() {
@@ -60,9 +60,9 @@ export class BrowserGemini {
 
   async listModels() {
     return [
-      { name: 'gemini-3.5-flash', size: 0, modified_at: '' },
-      { name: 'gemini-3.1-flash-lite', size: 0, modified_at: '' },
       { name: 'gemini-2.0-flash', size: 0, modified_at: '' },
+      { name: 'gemini-2.0-flash-lite', size: 0, modified_at: '' },
+      { name: 'gemini-2.5-flash', size: 0, modified_at: '' },
     ]
   }
 
@@ -107,7 +107,11 @@ export class BrowserGemini {
 
     if (!response.ok || !response.body) {
       const errText = await response.text().catch(() => '')
-      throw new Error(`Gemini API error: ${response.status} ${errText}`)
+      const status = response.status
+      if (status === 429) {
+        throw new Error(`Gemini API error: 429 quota exceeded RESOURCE_EXHAUSTED ${errText}`)
+      }
+      throw new Error(`Gemini API error: ${status} ${errText}`)
     }
 
     const reader = response.body.getReader()
