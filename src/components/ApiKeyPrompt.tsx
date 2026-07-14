@@ -21,7 +21,7 @@ export function ApiKeyPrompt({ onComplete }: { onComplete: () => void }) {
       <div className="glass rounded-2xl p-8 max-w-md w-full mx-4 animate-scale-in">
         <h2 className="text-2xl font-serif text-abyss-text mb-2">Ключ к Бездне</h2>
         <p className="text-abyss-text/60 text-sm mb-6">
-          Бездна говорит через Gemini. Получи бесплатный ключ и вставь его сюда.
+          Бесплатный ключ исчерпан или заблокирован. Вставь свой — и Бездна снова заговорит.
         </p>
 
         <div className="space-y-4">

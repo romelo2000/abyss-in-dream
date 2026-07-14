@@ -86,17 +86,20 @@ export default function App() {
     loadParadoxScore()
     loadKarma()
 
-    // Check first run
-    abyss.settings.get('setup_completed').then((completed) => {
-      if (!completed) {
-        setShowSetup(true)
-      }
-    })
-
-    // In web mode, check if Gemini API key is set
-    if (webGemini && !webGemini.hasApiKey()) {
-      setShowApiKeyPrompt(true)
+    // Check first run (skip SetupWizard in web mode — embedded key handles it)
+    if (!webGemini) {
+      abyss.settings.get('setup_completed').then((completed) => {
+        if (!completed) {
+          setShowSetup(true)
+        }
+      })
+    } else {
+      // Web mode — mark setup as completed automatically
+      abyss.settings.set('setup_completed', 'true')
     }
+
+    // In web mode, embedded key is used by default.
+    // ApiKeyPrompt only shows on API key failure (see onError handler below).
 
     // Set up streaming listener
     if (abyss.chat?.onChunk) {
@@ -112,8 +115,13 @@ export default function App() {
         console.error('Chat error:', data.error)
         setIsStreaming(false)
         setStreamingText('')
-        setErrorToast(`Бездна прервалась: ${data.error}`)
-        setTimeout(() => setErrorToast(null), 6000)
+        // If API key issue (embedded key banned/quota exhausted), ask for user's own key
+        if (webGemini && /401|403|quota|API key|invalid|permission|RESOURCE_EXHAUSTED/i.test(data.error)) {
+          setShowApiKeyPrompt(true)
+        } else {
+          setErrorToast(`Бездна прервалась: ${data.error}`)
+          setTimeout(() => setErrorToast(null), 6000)
+        }
       })
     }
 
