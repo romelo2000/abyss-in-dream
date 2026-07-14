@@ -13,6 +13,8 @@ import { BrokenMirrorsPanel } from './components/BrokenMirrorsPanel'
 import { DreamInvasion } from './components/DreamInvasion'
 import { DailyChallengeBanner } from './components/DailyChallengeBanner'
 import { SetupWizard } from './components/SetupWizard'
+import { ApiKeyPrompt } from './components/ApiKeyPrompt'
+import { webGemini } from './lib/abyssApi'
 import { AbyssEye, EyeState } from './components/AbyssEye'
 import { BreathingGuide } from './components/BreathingGuide'
 import { soundEngine, SoundPhase } from './lib/soundEngine'
@@ -28,7 +30,8 @@ import {
   MODES,
 } from './lib/types'
 
-const abyss = window.abyss
+import { abyss as abyssApi } from './lib/abyssApi'
+const abyss = abyssApi
 
 export default function App() {
   const [sessions, setSessions] = useState<Session[]>([])
@@ -52,6 +55,7 @@ export default function App() {
   const [karma, setKarma] = useState(0)
   const [sessionResult, setSessionResult] = useState<string | null>(null)
   const [showSetup, setShowSetup] = useState(false)
+  const [showApiKeyPrompt, setShowApiKeyPrompt] = useState(false)
   const [phaseToast, setPhaseToast] = useState<string | null>(null)
   const [errorToast, setErrorToast] = useState<string | null>(null)
   const [modeToast, setModeToast] = useState<string | null>(null)
@@ -88,6 +92,11 @@ export default function App() {
         setShowSetup(true)
       }
     })
+
+    // In web mode, check if Gemini API key is set
+    if (webGemini && !webGemini.hasApiKey()) {
+      setShowApiKeyPrompt(true)
+    }
 
     // Set up streaming listener
     if (abyss.chat?.onChunk) {
@@ -421,7 +430,16 @@ export default function App() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden">
-      {showSetup && (
+      {showApiKeyPrompt && (
+        <ApiKeyPrompt
+          onComplete={() => {
+            setShowApiKeyPrompt(false)
+            abyss.settings.set('setup_completed', 'true')
+            checkOllama()
+          }}
+        />
+      )}
+      {showSetup && !showApiKeyPrompt && (
         <SetupWizard
           onComplete={(model) => {
             setCurrentModel(model)

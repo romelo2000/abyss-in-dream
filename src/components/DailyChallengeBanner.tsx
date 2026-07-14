@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { DailyChallenge } from '../lib/types'
+import { abyss } from '../lib/abyssApi'
 
 interface Props {
   sessionId: number | null
@@ -12,7 +13,7 @@ export function DailyChallengeBanner({ sessionId, onAccept }: Props) {
   const [accepted, setAccepted] = useState(false)
 
   useEffect(() => {
-    const abyss = window.abyss
+    // abyss imported from abyssApi
     if (!abyss?.game?.dailyChallenge) return
     abyss.game.dailyChallenge().then((c: DailyChallenge | null) => {
       if (c) setChallenge(c)
@@ -23,7 +24,7 @@ export function DailyChallengeBanner({ sessionId, onAccept }: Props) {
 
   const handleAccept = async () => {
     if (!sessionId) return
-    const abyss = window.abyss
+    // abyss imported from abyssApi
     await abyss.game.setChallenge(sessionId, challenge.id)
     setAccepted(true)
     onAccept(challenge.id)

@@ -7,3 +7,8 @@ release/
 *.blockmap
 .DS_Store
 *.log
+.env
+.env.web
+data/
+server-dist/.DS_Store
+server-dist/

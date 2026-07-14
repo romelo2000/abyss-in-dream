@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { WeeklyStats } from '../lib/types'
+import { abyss } from '../lib/abyssApi'
 
 interface Props {
   onClose: () => void
@@ -9,7 +10,7 @@ export function DreamLetter({ onClose }: Props) {
   const [stats, setStats] = useState<WeeklyStats | null>(null)
 
   useEffect(() => {
-    const abyss = window.abyss
+    // abyss imported from abyssApi
     if (!abyss?.game?.weeklyStats) return
     abyss.game.weeklyStats().then(setStats).catch(() => {})
   }, [])

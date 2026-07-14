@@ -4,7 +4,7 @@ import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [react()],
-  base: './',
+  base: process.env.GITHUB_ACTIONS ? '/abyss-in-dream/' : './',
   build: {
     outDir: 'dist',
     emptyOutDir: true,

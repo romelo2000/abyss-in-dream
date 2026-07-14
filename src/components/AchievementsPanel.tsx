@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Achievement } from '../lib/types'
+import { abyss } from '../lib/abyssApi'
 
 interface Props {
   onClose: () => void
@@ -10,7 +11,7 @@ export function AchievementsPanel({ onClose }: Props) {
   const [egoDeaths, setEgoDeaths] = useState(0)
 
   useEffect(() => {
-    const abyss = window.abyss
+    // abyss imported from abyssApi
     if (!abyss?.game) return
     abyss.game.achievements?.()?.then(setAchievements).catch(() => {})
     abyss.game.egoDeaths?.()?.then(setEgoDeaths).catch(() => {})

@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { AVAILABLE_MODELS } from '../lib/types'
+import { abyss } from '../lib/abyssApi'
 
-const abyss = window.abyss
+// abyss imported from abyssApi
 
 type Step = 'checking' | 'no-ollama' | 'ollama-starting' | 'select-model' | 'pulling' | 'ready' | 'skip'
 

@@ -16,10 +16,17 @@
     "dist:all": "npm run build && electron-builder --mac --win",
     "test": "vitest run",
     "test:watch": "vitest",
-    "icon:gen": "bash scripts/gen-icon.sh"
+    "icon:gen": "bash scripts/gen-icon.sh",
+    "web:server": "npx tsx server/index.ts",
+    "web:dev": "concurrently -k \"npx tsx server/index.ts\" \"vite\"",
+    "web:build": "vite build",
+    "web:preview": "vite preview"
   },
   "dependencies": {
     "better-sqlite3": "^11.10.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
     "lucide-react": "^0.469.0",
     "pdfmake": "^0.3.11",
     "react": "^19.0.0",
@@ -29,6 +36,8 @@
   "devDependencies": {
     "@electron/rebuild": "^4.2.0",
     "@types/better-sqlite3": "^7.6.13",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
     "@types/node": "^22.10.5",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",
@@ -40,6 +49,7 @@
     "electron-builder": "^25.1.8",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.23.0",
     "typescript": "^5.7.2",
     "vite": "^6.0.7",
     "vitest": "^4.1.10",

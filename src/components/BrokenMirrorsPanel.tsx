@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { BrokenMirror, MODE_NAMES, MODE_COLORS } from '../lib/types'
+import { abyss } from '../lib/abyssApi'
 
 interface Props {
   onClose: () => void
@@ -9,13 +10,13 @@ export function BrokenMirrorsPanel({ onClose }: Props) {
   const [mirrors, setMirrors] = useState<BrokenMirror[]>([])
 
   useEffect(() => {
-    const abyss = window.abyss
+    // abyss imported from abyssApi
     if (!abyss?.mirror?.list) return
     abyss.mirror.list().then(setMirrors).catch(() => {})
   }, [])
 
   const handleDelete = async (id: number) => {
-    const abyss = window.abyss
+    // abyss imported from abyssApi
     if (!abyss?.mirror?.delete) return
     await abyss.mirror.delete(id).catch(() => {})
     setMirrors(prev => prev.filter(m => m.id !== id))

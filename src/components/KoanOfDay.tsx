@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
+import { abyss } from '../lib/abyssApi'
 
 export function KoanOfDay() {
   const [koan, setKoan] = useState<string | null>(null)
   const [dismissed, setDismissed] = useState(false)
 
   useEffect(() => {
-    const abyss = window.abyss
+    // abyss imported from abyssApi
     if (!abyss?.game?.koanOfDay) return
     abyss.game.koanOfDay().then((k: string) => setKoan(k)).catch(() => {})
   }, [])

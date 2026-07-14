@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
+import { abyss } from '../lib/abyssApi'
 
 export function DreamInvasion() {
   const [message, setMessage] = useState<string | null>(null)
   const [dismissed, setDismissed] = useState(false)
 
   useEffect(() => {
-    const abyss = window.abyss
+    // abyss imported from abyssApi
     if (!abyss?.game?.dreamInvasion) return
     abyss.game.dreamInvasion().then((msg: string | null) => {
       if (msg) setMessage(msg)
