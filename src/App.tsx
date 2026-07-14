@@ -86,10 +86,10 @@ export default function App() {
     loadParadoxScore()
     loadKarma()
 
-    // Web mode: show ApiKeyPrompt if no key in localStorage
+    // Web mode: show start page if no LLM mode chosen yet
     if (webGemini) {
-      const storedKey = localStorage.getItem('gemini_api_key')
-      if (!storedKey) {
+      const llmMode = localStorage.getItem('abyss_llm_mode')
+      if (!llmMode) {
         setShowApiKeyPrompt(true)
       }
       abyss.settings.set('setup_completed', 'true')

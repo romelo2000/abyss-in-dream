@@ -23,6 +23,7 @@
     "web:preview": "vite preview"
   },
   "dependencies": {
+    "@mlc-ai/web-llm": "^0.2.84",
     "better-sqlite3": "^11.10.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",

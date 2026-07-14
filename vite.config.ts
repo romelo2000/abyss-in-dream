@@ -8,6 +8,13 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'web-llm': ['@mlc-ai/web-llm'],
+        },
+      },
+    },
   },
   resolve: {
     alias: {

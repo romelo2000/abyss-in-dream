@@ -1,20 +1,48 @@
 // Pure frontend API — no server needed, everything runs in browser
-// Uses BrowserDB (localStorage), BrowserGemini (direct API calls), AbyssEngine (imported directly)
+// Supports both WebLLM (no API key, runs in browser) and BrowserGemini (API key)
 
 import { BrowserDB } from './browserDb'
 import { BrowserGemini } from './browserGemini'
+import { WebLLMClient } from './webLlm'
 import { BrowserMemory } from './browserMemory'
 import { AbyssEngine } from '../../electron/abyss'
 import { AbyssMode, ACHIEVEMENTS } from '../../electron/shared-types'
 
 const db = new BrowserDB()
 const gemini = new BrowserGemini()
+const webllm = new WebLLMClient()
 const memory = new BrowserMemory(db)
-const abyss = new AbyssEngine(gemini as any, db as any, memory as any)
+
+// Active LLM client — starts as gemini (which has no key = not running),
+// switches to webllm or gemini based on user choice
+let activeLLM: BrowserGemini | WebLLMClient = gemini
+let abyss = new AbyssEngine(gemini as any, db as any, memory as any)
 
 db.init().then(() => {
   console.log('BrowserDB initialized')
 })
+
+// Switch LLM client at runtime
+export function setLLMMode(mode: 'webllm' | 'gemini') {
+  if (mode === 'webllm') {
+    activeLLM = webllm
+  } else {
+    activeLLM = gemini
+  }
+  abyss = new AbyssEngine(activeLLM as any, db as any, memory as any)
+  localStorage.setItem('abyss_llm_mode', mode)
+}
+
+export function getLLMMode(): 'webllm' | 'gemini' {
+  return (localStorage.getItem('abyss_llm_mode') as 'webllm' | 'gemini') || 'webllm'
+}
+
+// Initialize from stored preference
+const storedMode = getLLMMode()
+if (storedMode === 'webllm') {
+  activeLLM = webllm
+  abyss = new AbyssEngine(webllm as any, db as any, memory as any)
+}
 
 // Chunk callbacks for streaming
 const chunkCallbacks: ((data: { sessionId: number; chunk: string }) => void)[] = []
@@ -22,13 +50,16 @@ const errorCallbacks: ((data: { sessionId: number; error: string }) => void)[] =
 const statusCallbacks: ((data: { sessionId: number; status: string }) => void)[] = []
 
 export const webApi = {
-  // Expose for settings UI
+  // Expose for settings UI and mode switching
   _gemini: gemini,
+  _webllm: webllm,
   _db: db,
+  _setLLMMode: setLLMMode,
+  _getLLMMode: getLLMMode,
 
   ollama: {
-    status: () => gemini.checkStatus(),
-    models: () => gemini.listModels(),
+    status: () => activeLLM.checkStatus(),
+    models: () => activeLLM.listModels(),
     start: () => Promise.resolve({ success: true }),
     isInstalled: () => Promise.resolve(true),
     hasModel: (_model: string) => Promise.resolve(true),
@@ -101,7 +132,7 @@ export const webApi = {
         const userPatterns = memory.getUserPatterns()
         const mode = (forceMode || abyss.selectMode(message, history, userPatterns, responseTimeMs)) as AbyssMode
 
-        const status = await gemini.checkStatus()
+        const status = await activeLLM.checkStatus()
         if (!status.running) {
           const demoResponse = abyss.getDemoResponse(message, mode)
           chunkCallbacks.forEach(cb => cb({ sessionId, chunk: demoResponse }))
@@ -159,7 +190,7 @@ export const webApi = {
 
         statusCallbacks.forEach(cb => cb({ sessionId, status: 'loading-model' }))
 
-        for await (const chunk of gemini.chatStream(model, systemPrompt, history, message)) {
+        for await (const chunk of activeLLM.chatStream(model, systemPrompt, history, message)) {
           responseChunks.push(chunk)
           chunkCallbacks.forEach(cb => cb({ sessionId, chunk }))
         }
