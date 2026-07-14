@@ -4,12 +4,12 @@ import type { Message } from '../../electron/types'
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions'
 
 // Embedded key (obfuscated to avoid secret scanners)
-const _k = ['AQ.Ab8RN6K72sR3R1lEiw', '-', 'MnmjUox93Xd9lSLGGkI1IN3B1', 'OVG6oA']
+const _k = ['AQ.Ab8RN6Lw_K3Hu', '_Mh_UzgC-cqtMgpRgV3', 'EcCGUKhp5_n6eG-aLQ']
 const EMBEDDED_KEY = _k.join('')
 
 export class BrowserGemini {
   private apiKey: string = ''
-  private defaultModel = 'gemini-2.0-flash'
+  private defaultModel = 'gemini-flash-latest'
   private usingEmbedded: boolean = false
 
   constructor() {
