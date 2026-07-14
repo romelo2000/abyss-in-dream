@@ -86,20 +86,21 @@ export default function App() {
     loadParadoxScore()
     loadKarma()
 
-    // Check first run (skip SetupWizard in web mode — embedded key handles it)
-    if (!webGemini) {
+    // Web mode: show ApiKeyPrompt if no key in localStorage
+    if (webGemini) {
+      const storedKey = localStorage.getItem('gemini_api_key')
+      if (!storedKey) {
+        setShowApiKeyPrompt(true)
+      }
+      abyss.settings.set('setup_completed', 'true')
+    } else {
+      // Electron mode: check setup
       abyss.settings.get('setup_completed').then((completed) => {
         if (!completed) {
           setShowSetup(true)
         }
       })
-    } else {
-      // Web mode — mark setup as completed automatically
-      abyss.settings.set('setup_completed', 'true')
     }
-
-    // In web mode, embedded key is used by default.
-    // ApiKeyPrompt only shows on API key failure (see onError handler below).
 
     // Set up streaming listener
     if (abyss.chat?.onChunk) {

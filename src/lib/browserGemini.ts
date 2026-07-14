@@ -3,9 +3,8 @@ import type { Message } from '../../electron/types'
 
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions'
 
-// Embedded key (obfuscated to avoid secret scanners)
-const _k = ['AQ.Ab8RN6Lw_K3Hu', '_Mh_UzgC-cqtMgpRgV3', 'EcCGUKhp5_n6eG-aLQ']
-const EMBEDDED_KEY = _k.join('')
+// No embedded key — user provides their own via ApiKeyPrompt
+const EMBEDDED_KEY = ''
 
 export class BrowserGemini {
   private apiKey: string = ''
